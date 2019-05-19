@@ -1,0 +1,3 @@
+#define RECORD_NUM 600000
+#define UPDATE_RATIO 20
+#define DURATION 30000

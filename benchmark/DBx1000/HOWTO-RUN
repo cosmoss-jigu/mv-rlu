@@ -1,0 +1,4 @@
+* How to run 
+ - edit config.h for READ_PERC and WRITE_PERC
+ - python test.py 
+ - find dbx1000.dat in the same dir 

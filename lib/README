@@ -1,0 +1,16 @@
+
+* MVRLU features (status of July, 31)
+ 1) mvrlu-full: full features of mvrlu
+   => As is the latest
+ 
+ 2) mvrlu-autogc-deref: autonomous GC with deref                                              
+   => Remove comment MVRLU_DISABLE_ADDR_ACTUAL_TYPE in lib/Makefile 
+ 
+ 3) mvrlu-autogc-capwm: autonomous GC with capacity water mark                                
+   => #define MVRLU_DEREF_MARK	-1 in lib/config.h
+
+ 4) mvrlu-distgc: distributed GC for per thread log buffer 
+   => #define MVRLU_LOG_LOW_MARK  MVRLU_LOG_HIGH_MARK in lib/config.h
+
+ 5) multi-version: support multi-version concurrency
+   => mvrlu-v3 tag
