@@ -19,7 +19,10 @@ for cpu in cpuinfo:
             primaries.add(processor)
             continue
         raise
-    ss = set(map(int, s.split("-")))
+    try:
+        ss = set(map(int, s.split("-")))
+    except:
+        ss = set(map(int, s.split(',')))
     if int(processor) == min(ss):
         primaries.add(processor)
 cpuinfo = [cpu for cpu in cpuinfo if cpu["processor"] in primaries]
