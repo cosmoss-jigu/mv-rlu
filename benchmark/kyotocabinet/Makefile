@@ -76,12 +76,12 @@ CPPFLAGS = -I. -I$(INCLUDEDIR) -I$(INC_DIR) -I/usr/local/include -DNDEBUG -D_GNU
   -D_KC_PREFIX="\"$(prefix)\"" -D_KC_INCLUDEDIR="\"$(INCLUDEDIR)\"" \
   -D_KC_LIBDIR="\"$(LIBDIR)\"" -D_KC_BINDIR="\"$(BINDIR)\"" -D_KC_LIBEXECDIR="\"$(LIBEXECDIR)\"" \
   -D_KC_APPINC="\"-I$(INCLUDEDIR)\"" -D_KC_APPLIBS="\"-L$(LIBDIR) -lkyotocabinet -lz -lstdc++ -lrt -lpthread -lm -lc \"" $(MOD_CFLAG) # -D_MYZLIB 
-CFLAGS = -march=native -m64 -g -O2 -Wall -ansi -pedantic -fsigned-char -O2 -Wno-unused-but-set-variable -Wno-unused-but-set-parameter # -fPIC
-CXXFLAGS = -march=native -m64 -g -O2 -Wall -fsigned-char -O2 -Wno-unused-but-set-variable -Wno-unused-but-set-parameter # -fPIC
+CFLAGS = -march=native -m64 -g -O2 -pthread -Wall -ansi -pedantic -fsigned-char -O2 -Wno-unused-but-set-variable -Wno-unused-but-set-parameter # -fPIC
+CXXFLAGS = -march=native -m64 -g -O2 -Wall -pthread -fsigned-char -O2 -Wno-unused-but-set-variable -Wno-unused-but-set-parameter # -fPIC
 LDFLAGS = -L. -L$(LIBDIR) -L/usr/local/lib -lpthread -lrt -Wl,-rpath-link,.:/usr/local/lib:.:/usr/local/lib: -Wl,--as-needed # -L$(LIB_DIR) -l$(MVRLU_LIB)
 CMDLDFLAGS = 
 CMDLIBS = 
-LIBS = -lz -lstdc++ -lrt -lpthread -lm -lc 
+LIBS = -lz -lstdc++ -lrt -lpthread -lm -lc
 RUNENV = LD_LIBRARY_PATH=.:/usr/local/lib:
 POSTCMD = true
 
