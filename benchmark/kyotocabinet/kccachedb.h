@@ -791,6 +791,7 @@ class CacheDB : public BasicDB {
    * @return true on success, or false on failure.
    */
   bool close() {
+	  return true;
     _assert_(true);
     ScopedRWLock lock(&mlock_, true);
     if (omode_ == 0) {
@@ -1881,8 +1882,8 @@ class CacheDB : public BasicDB {
       rec->prev = slot->last;
       rec->next = NULL;
       assert(prev != NULL);
-      if(!RLU_TRY_LOCK(self, &(prev)))
-	      printf("prev try lock failed\n");
+      if(!RLU_TRY_LOCK(self, &(prev)));
+	      //printf("prev try lock failed\n");
       if(direction == 0)
               RLU_ASSIGN_PTR(self, &(prev->left), rec);
       else

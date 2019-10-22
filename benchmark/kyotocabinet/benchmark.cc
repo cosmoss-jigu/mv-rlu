@@ -2,12 +2,17 @@
 #include "cmdcommon.h"
 #include "benchmark.h"
 #include <getopt.h>
+#include <fstream>
 
 
 // global variables
 uint32_t g_randseed;                     // random seed
 int64_t g_memusage;                      // memory usage
 volatile int stop;
+std::vector<std::string> keyArray;
+std::vector<std::string> valueArray;
+#define TOTAL_KEYS 5000000
+#define WRITER_READER_RATIO 5
 
 /////////////////////////////////////////////////////////
 // HELPER FUNCTIONS
@@ -125,6 +130,8 @@ class ThreadSet : public kc::Thread {
 		bool err_;
 
 	public:
+		unsigned long insert;
+		unsigned long read;
 		void setparam(int id, kc::BasicDB* db, int rnum, int thnum)
 		{
 			id_ = id;
@@ -136,15 +143,146 @@ class ThreadSet : public kc::Thread {
 		void run()
 		{
 			err_ = false;
-			int range = rnum_ * 2;
-			for (int i = 1; !err_ && i <= rnum_; i++) {
-				char kbuf[64];
-				size_t ksiz = sprintf(kbuf, "%08lld", 
-						(long long)rand_range(range + 1, seed));
-				if (!db_->set(kbuf, ksiz, kbuf, ksiz)) {
-					assert(0 && "Error in setting\n");
+			if (thnum_ == 255) {
+				for (int i = 0; i < 5000000; i++) {
+					char key[16];
+					sprintf(key, "%d", i);
+					char value[64] = "NULL";
+					if (!db_->set(key, 16,
+								value, 64)) {
+						assert(0 && "Error in setting\n");
+					}
 				}
+				return;
 			}
+
+
+			/*std::ifstream demoFile;
+			demoFile.open("demo.txt");
+			if (!demoFile.is_open()) {
+				printf("Error opening file\n");
+				//exit(1);
+			}*/
+			//std::ofstream demoFileOut;
+			//std::string outFileName = "out_" + std::to_string(rnum_) + ".txt";
+			//demoFileOut.open(outFileName);
+			int count = 0;
+			char vbuf[64];
+			int range = 20;
+			for (int i = rnum_; i < keyArray.size(); i = i + thnum_) {
+				std::string kbufString;
+				std::string vbufString;
+				size_t vsiz;
+				if (1) {
+					insert++;
+					if (!db_->set(keyArray[i].c_str(), keyArray[i].length(),
+								valueArray[i].c_str(), valueArray[i].length())) {
+						assert(0 && "Error in setting\n");
+					}
+
+				}
+				count++;
+				/*if (count % range != 0) continue;
+				int x = 10;
+				while(x--) {
+					for(int i = 0; i < keysInserted.size(); i++) {
+						read++;
+						if (!db_->get(keyArray[keysInserted[i]].c_str(), keyArray[keysInserted[i]].length(),
+									vbuf, sizeof(vbuf))) {
+							assert(0 && "Error in setting\n");
+						}
+						//demoFileOut << key << " " << vbuf << std::endl;
+
+					}
+				}*/
+				//range = (rand_range(1000, seed) + 1);
+				if (count*thnum_ > TOTAL_KEYS ) break;
+			}
+		}
+};
+
+class ThreadGet : public kc::Thread {
+	private:
+		int id_;
+		kc::BasicDB* db_;
+		int rnum_;
+		int thnum_;
+		unsigned short seed[3];
+		bool err_;
+
+	public:
+		unsigned long insert;
+		unsigned long read;
+		void setparam(int id, kc::BasicDB* db, int rnum, int thnum)
+		{
+			id_ = id;
+			db_ = db;
+			rnum_ = rnum;
+			thnum_ = thnum;
+			rand_init(seed);
+		}
+		void run()
+		{
+			err_ = false;
+			std::ofstream demoFile;
+			std::string outFileName = "out_" + std::to_string(rnum_) + ".txt";
+			demoFile.open(outFileName);
+			int count = 0;
+			char vbuf[64];
+			std::queue<int> todo;
+			int startIndex = rnum_ * 10000;
+			int x = rnum_;
+			std::string batchString;
+			batchString.resize(4000);
+			int curLength = 0;
+			while (1) {
+				for (int i = startIndex; i < (startIndex + 10000) && i < TOTAL_KEYS; i++) {
+					char key[16];
+					int count = 0;
+					sprintf(key, "%d", i);
+					size_t keyLength = strlen(key);
+try_again:
+					memset(vbuf, 0, 64);
+					if (!db_->get(key, keyLength,
+								vbuf, sizeof(vbuf))) {
+						assert(0 && "error in setting\n");
+					}
+					else read++;
+					if(strncmp(vbuf, "NULL", 4) == 0) {
+						count++;
+						if (count < 100)
+							goto try_again;
+						else continue;
+					}else {
+						//demoFile << key << " " << vbuf << std::endl;
+						std::string appendString = std::string(key) + " " + std::string(vbuf) + "\n";
+						if (curLength + appendString.length() < 4000) {
+							batchString.append(std::string(appendString));
+							curLength += appendString.length();
+						}else {
+							demoFile << batchString;
+							batchString.clear();
+							batchString.append(appendString);
+							curLength = 0;
+						}
+					}
+				}
+				x += thnum_;
+				startIndex = (x) * 10000;
+				if (startIndex > TOTAL_KEYS) break;
+			}
+			/*
+			while (1) {
+				int key = count*thnum_ + rnum_ + 1;
+				std::string kbufString = std::to_string(key);
+				if (!db_->get(kbufstring.c_str(), kbufstring.length(),
+							vbuf, sizeof(vbuf))) {
+					assert(0 && "error in setting\n");
+				}
+
+				count++;
+				if (count > 100000) break;
+			}*/
 		}
 };
 
@@ -206,6 +344,12 @@ void print_usage() {
 	printf("Usage: ./benchmark -t num\n");
 }
 
+inline double get_now() {
+	struct timeval tv;
+	gettimeofday(&tv, 0);
+	return tv.tv_sec + tv.tv_usec / 1000000.0;
+}
+
 int main(int argc, char *argv[])
 {
 	int thnum = -1;
@@ -232,6 +376,22 @@ int main(int argc, char *argv[])
 		printf("Error Opening DB\n");
 		assert(0);
 	}
+	std::ifstream demoFile;
+	demoFile.open("demo.txt");
+	if (!demoFile.is_open()) {
+		printf("Error opening file\n");
+		//exit(1);
+	}
+	while (demoFile.good()) {
+		std::string kbufString;
+		std::string vbufString;
+		demoFile >> kbufString >> vbufString;
+		if (kbufString.length() == 0 || vbufString.length() == 0) {
+			continue;
+		}
+		keyArray.push_back(kbufString);
+		valueArray.push_back(vbufString);
+	}
 
 	int rnum = RECORD_NUM;
 	int update = UPDATE_RATIO;
@@ -242,55 +402,54 @@ int main(int argc, char *argv[])
 	timeout.tv_nsec = (duration % 1000) * 1000000;
 	
 	printf("Setting Records\n");
+	
 
 	ThreadSet threadsets[THREADMAX];
-	/* Lets do parallel initialization later
-	for (int i = 0; i < thnum; i++) {
-		threadsets[i].setparam(i, &db, rnum, thnum);
-		threadsets[i].start();
-	}
-	for(int i = 0; i < thnum; i++)
-		threadsets[i].join();
-	*/
-	threadsets[0].setparam(0, &db, rnum, thnum);
+	ThreadGet threadgets[THREADMAX];
+	threadsets[0].setparam(255, &db, 255, 1);
 	threadsets[0].start();
 	threadsets[0].join();
+	double start_time = get_now();
+	for (int i = 0; i < WRITER_READER_RATIO*thnum; i++) {
+		threadsets[i].setparam(i, &db, i, WRITER_READER_RATIO*thnum);
+		threadsets[i].start();
+	}
+	for (int i = 0; i < thnum; i++) {
+		threadgets[i].setparam(i, &db, i, thnum);
+		threadgets[i].start();
+	}
+	for(int i = 0; i < WRITER_READER_RATIO * thnum; i++)
+		threadsets[i].join();
+	for(int i = 0; i < thnum; i++)
+		threadgets[i].join();
+	double end_time = get_now();
+	printf("duration = %f\n", end_time - start_time);
+	unsigned long total_op = 0;
+	for (int i = 0; i < WRITER_READER_RATIO *thnum; i++) 
+		total_op += threadsets[i].insert + threadsets[i].read;
+	for (int i = 0; i < thnum; i++) 
+		total_op += threadgets[i].insert + threadgets[i].read;
+
+	printf("PASS\nSummary: ");
+
+
+	printf("total_ops=%f\n", total_op * 1000 /(end_time - start_time) / 1000000.0);
+	/*for (int i = 0; i < thnum; i++) {
+		threadgets[i].setparam(i, &db, i, thnum);
+		threadgets[i].start();
+	}*/
+	/*for(int i = 0; i < thnum; i++)
+		threadgets[i].join();*/
+
 	
 	printf("Done setting records\n");
 
 	stop = 0;
 
-	ThreadBench threads[THREADMAX];
-	for (int i = 0; i < thnum; i++) {
-		threads[i].setparam(i, &db, rnum, update, thnum);
-		threads[i].start();
-	}
-
-	long total_update = 0;
-	long total_get = 0;
-	long total_op = 0;
-	
-	if(duration > 0)
-		nanosleep(&timeout, NULL); 
-
-	stop = 1;
-
-	for(int i = 0; i < thnum; i++)
-		threads[i].join();
-
-	for(int i = 0; i < thnum; i++) {
-		total_update += threads[i].add + threads[i].remove;
-		total_get += threads[i].get;
-	}
-	total_op = total_update + total_get;
-	printf("PASS\nSummary: ");
-
-	printf("total_ops=%ld\ntotal_update = %ld\ntotal_get = %ld\n\n", total_op/duration*1000,
-			total_update, total_get);
-
 	dbmetaprint(&db, true);
 	printf("Closing the database\n");
 	if (!db.close())
 		printf("Error in closing\n"); 
+		
 
 }
