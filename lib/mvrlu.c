@@ -1271,6 +1271,16 @@ static inline int wakeup_qp_thread_for_reclaim(void)
 	return 0;
 }
 
+// Check if the obj lock is held by the same thread to update the obj
+static inline int is_lock_held_by_self(mvrlu_thread_struct_t *self,
+                                       volatile void *lock)
+{
+	unsigned char *log_space_start = (unsigned char *)(self->log.buffer);
+	unsigned char *log_space_end = log_space_start + MVRLU_LOG_SIZE;
+	unsigned char *_lock = (unsigned char *)lock;
+	return (log_space_start <= _lock) && (_lock < log_space_end);
+}
+
 /*
  * External APIs
  */
@@ -1571,7 +1581,7 @@ int _mvrlu_try_lock(mvrlu_thread_struct_t *self, void **pp_obj, size_t size)
 	p_lock = ahs->act_hdr.p_lock;
 	if (unlikely(p_lock)) {
 #ifdef MVRLU_NESTED_LOCKING
-		if (self == chs_to_thread(vobj_to_chs(p_lock))) {
+		if (is_lock_held_by_self(self, p_lock)) {
 			/* If the lock is acquired by the same thread,
 			 * allow to lock again according to the original
 			 * RLU semantics.
