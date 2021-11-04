@@ -59,8 +59,7 @@ ordo:
 PHONY += help
 help: git-hooks
 	@echo '## Generic targets:'
-	@echo '  all             - Configure and build all source code including mv-rlu,'
-	@echo '                    and kernel, and create a test VM image.'
+	@echo '  all             - Configure and build all source code including mv-rlu.'
 	@echo '  clean           - Remove most generated files but keep the config'
 	@echo '                    files, lib, and benchmarks except for kernel and vm.'
 	@echo '                    To clean kernel, run `make kernel-clean`.'
