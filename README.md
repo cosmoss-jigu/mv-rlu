@@ -16,8 +16,7 @@ mv-rlu
 │   ├── kyotocabinet    #  - kyotocabinet benchmark
 │   └── versioning      #  - versioned programming and benchmark
 ├── bin                 # all binary files and scripts
-├── tools               # misc build tools
-└── linux               # linux kernel v4.17
+└── tools               # misc build tools
 ```
 
 ## Prerequisites
