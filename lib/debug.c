@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright (c) 2018-2019 Virginia Tech
+// SPDX-License-Identifier: Apache-2.0
 #ifndef __KERNEL__
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright (c) 2018-2019 Virginia Tech
+// SPDX-License-Identifier: Apache-2.0
 #include <sys/mman.h>
 #include <stdio.h>
 #include <pthread.h>

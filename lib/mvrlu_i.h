@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright (c) 2018-2019 Virginia Tech
+// SPDX-License-Identifier: Apache-2.0
 #ifndef _MVRLU_I_H
 #define _MVRLU_I_H
 #include "arch.h"

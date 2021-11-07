@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright (c) 2018-2019 Virginia Tech
+// SPDX-License-Identifier: Apache-2.0
 #ifndef _ORDO_CLOCK_H
 #define _ORDO_CLOCK_H
 
