@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# SPDX-FileCopyrightText: Copyright (c) 2018-2019 Virginia Tech
+# SPDX-License-Identifier: Apache-2.0
+
 import json
 from run_tests_stats import execute
 import optparse
